@@ -19,12 +19,7 @@ def pegarInfosXml(arquivo, valores):
             cidade = inf_nota["dest"]["enderDest"]["xMun"].upper()
             quant_ITENS = ""
             peso = inf_nota["transp"]["vol"]["pesoB"].replace('.', ',')
-            valorNF = inf_nota["total"]["ICMSTot"]["vNF"].replace('.', ',')
-        except Exception as err:
-            print(f"erro encontrado na nota {nf}.. ERRO: {err}nao encontrado")
-            valorNF = 'NAO INFORMADO '
-            peso = 'Não informado'
-            
+            valorNF = inf_nota["total"]["ICMSTot"]["vNF"].replace('.', ',')            
             tipo = " "
             observacoes_avarias = ""
             motorista = ""
@@ -37,6 +32,10 @@ def pegarInfosXml(arquivo, valores):
             codigo_agen = ""
             canhotos = ""
             observacoes = ""
+        except Exception as err:
+            print(f"erro encontrado na nota {nf}.. ERRO: {err}nao encontrado")
+            valorNF = 'NAO INFORMADO '
+            peso = 'Não informado'
        
         valores.append([nf, nf_REFAT, data_ENTRADA, cliente, destino, endereco, cidade, quant_ITENS, peso, valorNF, tipo,
                         observacoes_avarias, motorista, palca, n_carga, data_saida, data_entrega, status, status_AGEND,
