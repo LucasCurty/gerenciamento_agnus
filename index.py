@@ -36,7 +36,7 @@ def pegarInfosXml(arquivo, valores):
             print(f"erro encontrado na nota {nf}.. ERRO: {err}nao encontrado")
             valorNF = 'NAO INFORMADO '
             peso = 'Não informado'
-       
+       #Alguns campos estão vazios, porem para melhor entendimento do usuário foi feito as colunas com linhas vazias
         valores.append([nf, nf_REFAT, data_ENTRADA, cliente, destino, endereco, cidade, quant_ITENS, peso, valorNF, tipo,
                         observacoes_avarias, motorista, palca, n_carga, data_saida, data_entrega, status, status_AGEND,
                         codigo_agen, canhotos, observacoes])
