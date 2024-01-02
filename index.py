@@ -5,33 +5,39 @@ import PySimpleGUI as sg
 
 def pegarInfosXml(arquivo, valores):
     with open(f'xmls/{arquivo}', "rb") as arquivo_xml:
-        dic_arquivo = xmltodict.parse(arquivo_xml)
-        inf_nota = dic_arquivo["nfeProc"]["NFe"]["infNFe"]
-        nf = inf_nota["ide"]["nNF"].upper()
-        nf_REFAT = ""
-        data_ENTRADA = ""
-        cliente = inf_nota["emit"]["xFant"].upper()
-        destino = inf_nota["dest"]["xNome"].upper()
-        rua = inf_nota["dest"]["enderDest"]["xLgr"]
-        numero = inf_nota["dest"]["enderDest"]["nro"]
-        endereco = (rua + ' N° ' + str(numero))
-        cidade = inf_nota["dest"]["enderDest"]["xMun"].upper()
-        quant_ITENS = ""
-        peso = inf_nota["transp"]["vol"]["pesoB"].replace('.', ',')
-        valorNF = inf_nota["total"]["ICMSTot"]["vNF"].replace('.', ',')
-        tipo = ""
-        observacoes_avarias = ""
-        motorista = ""
-        palca = ""
-        n_carga = ""
-        data_saida = ""
-        data_entrega = ""
-        status = ""
-        status_AGEND = ""
-        codigo_agen = ""
-        canhotos = ""
-        observacoes = ""
-
+        try:
+            dic_arquivo = xmltodict.parse(arquivo_xml)
+            inf_nota = dic_arquivo["nfeProc"]["NFe"]["infNFe"]
+            nf = inf_nota["ide"]["nNF"].upper()
+            nf_REFAT = ""
+            data_ENTRADA = ""
+            cliente = inf_nota["emit"]["xFant"].upper()
+            destino = inf_nota["dest"]["xNome"].upper()
+            rua = inf_nota["dest"]["enderDest"]["xLgr"]
+            numero = inf_nota["dest"]["enderDest"]["nro"]
+            endereco = (rua + ' N° ' + str(numero))
+            cidade = inf_nota["dest"]["enderDest"]["xMun"].upper()
+            quant_ITENS = ""
+            peso = inf_nota["transp"]["vol"]["pesoB"].replace('.', ',')
+            valorNF = inf_nota["total"]["ICMSTot"]["vNF"].replace('.', ',')
+        except Exception as err:
+            print(f"erro encontrado na nota {nf}.. ERRO: {err}nao encontrado")
+            valorNF = 'NAO INFORMADO '
+            peso = 'Não informado'
+            
+            tipo = " "
+            observacoes_avarias = ""
+            motorista = ""
+            palca = ""
+            n_carga = ""
+            data_saida = ""
+            data_entrega = ""
+            status = ""
+            status_AGEND = ""
+            codigo_agen = ""
+            canhotos = ""
+            observacoes = ""
+       
         valores.append([nf, nf_REFAT, data_ENTRADA, cliente, destino, endereco, cidade, quant_ITENS, peso, valorNF, tipo,
                         observacoes_avarias, motorista, palca, n_carga, data_saida, data_entrega, status, status_AGEND,
                         codigo_agen, canhotos, observacoes])
@@ -53,7 +59,11 @@ def arrumando_tabela(arquivo):
 sg.theme('DarkGrey')
 
 # Adicionando os códigos específicos para a janela de transformação XML
-listar_arquivos_xml = os.listdir("xmls")
+try:
+    listar_arquivos_xml = os.listdir("xmls")
+except FileNotFoundError:
+    os.mkdir("xmls")
+    listar_arquivos_xml = os.listdir("xmls")
 
 colunas_xml = ["NF", "NF REFAT", "DATA ENTRADA", "CLIENTE ORIGEM", "DESTINO", "ENDEREÇO", "CIDADE", "QUANT ITENS", "PESO",
                "VALOR NF", "TIPO", "OBS DE FALTAS E AVARIA (ARMAZÉM)", "MOTORISTA", "PLACA", "Nº DA CARGA",
@@ -61,10 +71,13 @@ colunas_xml = ["NF", "NF REFAT", "DATA ENTRADA", "CLIENTE ORIGEM", "DESTINO", "E
                "OBSERVAÇÕES"]
 valores_xml = []
 
+
 for arquivo in listar_arquivos_xml:
     pegarInfosXml(arquivo, valores_xml)
-
-tabelas_xml = pd.DataFrame(columns=colunas_xml, data=valores_xml)
+    
+def ativandoXML():
+    tabelas_xml = pd.DataFrame(columns=colunas_xml, data=valores_xml)
+    return tabelas_xml
 
 # Layout da aba do código 1
 layout_codigo1 = [
@@ -76,9 +89,9 @@ layout_codigo1 = [
 
 # Layout da aba do código 2
 layout_codigo2 = [
-    [sg.Text("Esse programa transforma as informações dos xmls em dados de uma planihla. Como usar:")],
+    [sg.Text("Transformando arquivos XML para planilha.")],
     [sg.Text("Coloque todos os xmls dentro da pasta 'xmls' e então clique em confirmar !")],
-    [sg.Text("OBS: É de extrema importancia que exista uma pasta 'xmls' dentro do mesmo local que o programa esteja executando.")],
+    [sg.Text("", key="XML_NOME")],
     [sg.Button("Confirmar", key="OK_BUTTON")]
 ]
 
@@ -126,9 +139,16 @@ while True:
             print("ERRO ENCONTRADO: ", error)
             
     if event == 'OK_BUTTON':
+        gerando_planilha = ativandoXML()
+        xml_geredado = sg.popup_get_text("Como sua planilha vai se chamar?", title="Informe o nome.")
         try:
-            tabelas_xml.to_excel("NotasFiscais.xlsx", index=False)
+            if not xml_geredado or xml_geredado == None:
+                xml_geredado = sg.popup_get_text("Como sua planilha vai se chamar?", title="Informe o nome.")
+                window["XML_NOME"].update("impossivel gerar uma planilha sem o nome!")
+            elif xml_geredado:
+                gerando_planilha.to_excel(f"{xml_geredado}.xlsx", sheet_name=xml_geredado, index=True)
+                window["XML_NOME"].update(f"< {xml_geredado} > gerada com sucesso!")
         except Exception as error:
-            sg.popup_animated(f"Erro encontrado: {error}")
+            sg.popup_animated(f"{error} Erro encontrado:")
             
 window.close()
